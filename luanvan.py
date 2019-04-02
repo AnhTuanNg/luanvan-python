@@ -9,7 +9,11 @@ import imutils
 import cv2
 import urllib #for reading image from URL
  
- 
+count_blue= 0
+flag_blue= 0
+count_green= 0
+flag_green= 0
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video",
@@ -72,7 +76,7 @@ while True:
         cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
             cv2.CHAIN_APPROX_SIMPLE)[-2]
         center = None
-       
+        
         # only proceed if at least one contour was found
         if len(cnts) > 0:
             # find the largest contour in the mask, then use
@@ -83,18 +87,35 @@ while True:
             M = cv2.moments(c)
             center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
             
-          
+            
             # only proceed if the radius meets a minimum size. Correct this value for your obect's size
             if radius > 0.5:
                 # draw the circle and centroid on the frame,
                 # then update the list of tracked points
                 cv2.circle(frame, (int(x), int(y)), int(radius), colors[key], 2)
-                cv2.putText(frame,key + " ball"+str(center)+str(x), (int(x-radius),int(y-radius)), cv2.FONT_HERSHEY_SIMPLEX, 0.6,colors[key],2)
- 
+                cv2.putText(frame,key +str(center), (int(center[0]),int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.6,colors[key],2)
+                
 
+                if  int(center[0]) > 100 :
+                	if key == "blue" and flag_blue == 1:
+	                	count_blue += 5
+	                	flag_blue = 0
+                	if key == "green" and flag_green == 1:
+	                	count_green += 5
+	                	flag_green = 0
+	                
+                if int(center[0]) < 100:
+                	if key == "blue":
+	                	flag_blue = 1
+	                if key == "green":
+	                	flag_green = 1
+	                
+    cv2.putText(frame,str(count_green), (100,30), cv2.FONT_HERSHEY_SIMPLEX, 0.6,colors["green"],2)
+    cv2.putText(frame,str(count_blue), (100,50), cv2.FONT_HERSHEY_SIMPLEX, 0.6,colors["blue"],2)
+    cv2.line(frame, (100, 0), (100, frame.shape[0]), (0,255,0), 2)
+    cv2.line(frame, (500, 0), (500, frame.shape[0]), (0,255,0), 2)
     # show the frame to our screen
     cv2.imshow("Frame", frame)
-    cv2.imshow("Mask", mask)
 
     key = cv2.waitKey(1) & 0xFF
     # if the 'q' key is pressed, stop the loop
